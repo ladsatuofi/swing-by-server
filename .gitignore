@@ -4,3 +4,5 @@
 .venv/
 /access.log
 /dump.rdb
+event.json
+
