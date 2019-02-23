@@ -1,7 +1,7 @@
 from flask import Flask
-import redis_access_lib as rd
+import sbserver.data.redis_access_lib as rd
 from uuid import uuid4
-import model
+from sbserver.data import model
 
 
 r = rd.open_connection('localhost', 6379)
