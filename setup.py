@@ -19,7 +19,6 @@ setup(
     keywords='server',
     packages=[
         'sbserver',
-        'sbserver.data',
         'sbserver.routes',
         'sbserver.scripts'
     ],

@@ -57,9 +57,22 @@ class Tag:
 
 
 @RClass()
+class EventState:
+    pending = RKey()
+    valid = RKey()
+    invalid = RKey()
+
+    name = RKey()  # key label
+
+
+@RClass()
 class Event:
     uuid = RKey()
     data = RKey()
+    upvotes = RKey()  # list of user uuids
+    upvotes_set = RKey()  # set of user uuids
+    views = RKey()  # set of user uuids
+    state = RKey()  # One of EventState strings
 
     model = api.model("event", {
         'name': fields.String(desription='Name of event', required=True),
@@ -69,14 +82,18 @@ class Event:
         'duration': fields.Float(description='Number of hours of event'),
         'timeStr': fields.String(description='String of time (ie. September 3rd at 4pm)'),
         'tags': fields.List(fields.String, description='Tags associated with event'),
-        'uuid': fields.String(readonly=True, description='Generated uuid of object')
+        'uuid': fields.String(readonly=True, description='Generated uuid of object'),
+        'state': fields.String(readonly=True, description='One of: EventState.pending, '
+                                                         'EventState.valid, EventState.invalid')
     })
 
     @staticmethod
-    def add(event: dict):
+    def add(event: dict) -> str:
         uuid = event['uuid'] = str(uuid4())
         tags = event.setdefault('tags', [])
+        state = event.setdefault('state', EventState.pending)
         red.set(Event.uuid(uuid) & Event.data, json.dumps(event))
+        red.sadd(EventState.name(state), uuid)
         red.sadd(Event.uuid, uuid)
         for tag in tags:
             red.sadd(Tag.name, tag)
@@ -85,28 +102,60 @@ class Event:
 
     @classmethod
     def delete(cls, uuid):
-        tags = cls.get(uuid)['tags']
+        data = cls.get(uuid)
         red.delete(Event.uuid(uuid) & Event.data)
+        red.delete(Event.uuid(uuid) & Event.upvotes)
+        red.delete(Event.uuid(uuid) & Event.upvotes_set)
+        red.delete(Event.uuid(uuid) & Event.views)
+        red.srem(EventState.name(data['state']), uuid)
         red.srem(Event.uuid, uuid)
-        for tag in tags:
+        for tag in data['tags']:
             red.srem(Tag.name(tag), uuid)
             if red.scard(Tag.name(tag)) == 0:
                 red.srem(Tag.name, tag)
 
-    @staticmethod
-    def exists(uuid):
-        return red.sismember('event.uuids', uuid)
+    @classmethod
+    def set_state(cls, uuid, state):
+        data = cls.get(uuid)
+        red.srem(EventState.name(data['state']), uuid)
+        data['state'] = state
+        red.sadd(EventState.name(state), uuid)
+        red.set(Event.uuid(uuid) & Event.data, json.dumps(data))
 
     @staticmethod
-    def get(uuid):
+    def mark_as_viewed(uuid, user_uuid) -> bool:
+        return bool(red.sadd(Event.uuid(uuid) & Event.views, user_uuid))
+
+    @staticmethod
+    def mark_as_upvoted(uuid, user_uuid) -> bool:
+        if red.sadd(Event.upvotes_set, user_uuid):
+            red.lpush(Event.uuid(uuid) & Event.views, user_uuid)
+            return True
+        return False
+
+    @staticmethod
+    def get_upvotes(uuid) -> list:
+        return red.lrange(Event.uuid(uuid) & Event.upvotes, 0, -1)
+
+    @staticmethod
+    def get_views(uuid) -> list:
+        return red.smembers(Event.uuid(uuid) & Event.views)
+
+    @staticmethod
+    def exists(uuid) -> bool:
+        return red.sismember(Event.uuid, uuid)
+
+    @staticmethod
+    def get(uuid) -> dict:
         event = json.loads(red.get(Event.uuid(uuid) & Event.data))
         event['time'] = datetime.datetime.fromtimestamp(event['time'])
         return event
 
     @classmethod
-    def get_all(cls):
-        return [cls.get(x) for x in red.smembers(Event.uuid)]
-
-    @classmethod
-    def get_by_tag(cls, tag):
-        return [cls.get(uuid) for uuid in red.smembers(Tag.name(tag))]
+    def find(cls, tag=None, event_state=None) -> list:
+        uuids = set(red.smembers(Event.uuid))
+        if tag:
+            uuids &= set(red.smembers(Tag.name(tag)))
+        if event_state:
+            uuids &= set(red.smembers(EventState.name(event_state)))
+        return [cls.get(x) for x in uuids]

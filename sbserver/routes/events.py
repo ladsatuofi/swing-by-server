@@ -27,7 +27,7 @@ class EventCreateRoute(Resource):
     @api.marshal_list_with(Event.model)
     def get(self):
         tag = request.args.get('tag')
-        return Event.get_by_tag(tag) if tag else Event.get_all()
+        return Event.find(tag)
 
     @api.expect(Event.model)
     @api.marshal_with(Event.model)
