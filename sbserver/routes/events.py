@@ -5,7 +5,7 @@ from flask_restplus import Resource, fields
 from flask_restplus.inputs import datetime_from_iso8601
 from werkzeug.exceptions import NotFound
 
-from sbserver import api, red
+from sbserver import api
 from sbserver.database import Event
 
 EventApiModel = api.model("event", {
@@ -38,7 +38,7 @@ class EventCreateRoute(Resource):
     @api.marshal_list_with(EventApiModel)
     def get(self):
         tag = request.args.get('tag')
-        return Event.get_by_tag(tag) if tag else Event.get_all(red)
+        return Event.get_by_tag(tag) if tag else Event.get_all()
 
     @api.expect(EventApiModel)
     @api.marshal_with(EventApiModel)
