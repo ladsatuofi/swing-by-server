@@ -31,7 +31,8 @@ setup(
         'prettyparse',
         'pyyaml',
         'fitipy',
-        'email-helper'
+        'email-helper',
+        'bs4'
     ],
     entry_points={
         'console_scripts': [
