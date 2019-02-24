@@ -1,7 +1,8 @@
 class EventModel:
-    def __init__(self, name, desc, locat, time, tags):
+    def __init__(self, name: str, description: str, location: str, time: int, tags: list, uuid=''):
         self.name = name
-        self.desc = desc
-        self.locat = locat
+        self.description = description
+        self.location = location
         self.time = time
         self.tags = tags
+        self.uuid = uuid

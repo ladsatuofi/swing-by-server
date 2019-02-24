@@ -1,5 +1,6 @@
 import json
 import redis
+from uuid import uuid4
 
 from sbserver.data.model import EventModel
 
@@ -23,11 +24,13 @@ def del_user(r, email):
     r.delete('user.email-user.password:' + email)
 
 
-def add_event(r, uuid, event: EventModel):
+def add_event(r, event: EventModel):
+    event.uuid = uuid = event.uuid or str(uuid4())
     r.set('event.uuid-event.details:' + uuid, json.dumps(event, default=vars))
     r.sadd('event.uuids', uuid)
     for x in event.tags:
         r.sadd(x, uuid)
+    return uuid
 
 
 def del_event(r, uuid):
@@ -46,4 +49,4 @@ def get_all_events(r):
 
 
 def get_events_by_tag(r, tag):
-    return r.smembers('tag:' + tag)
+    return [get_event(r, uuid) for uuid in r.smembers('tag:' + tag)]
