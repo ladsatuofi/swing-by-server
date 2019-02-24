@@ -1,5 +1,6 @@
 import json
 import redis
+import datetime
 from uuid import uuid4
 
 from sbserver.data.model import EventModel
@@ -34,14 +35,21 @@ def add_event(r, event: EventModel):
 
 
 def del_event(r, uuid):
+    tags = get_event(r, uuid)['tags']
     r.delete('event.uuid-event.details:' + uuid)
     r.srem('event.uuids', uuid)
-    for tag in get_event(r, uuid)['tags']:
-        r.srem('tag:' + tag)
+    for tag in tags:
+        r.srem('tag:' + tag, uuid)
+
+
+def is_event(r, uuid):
+    return r.sismember('event.uuids', uuid)
 
 
 def get_event(r, uuid):
-    return json.loads(r.get('event.uuid-event.details:' + uuid))
+    event = json.loads(r.get('event.uuid-event.details:' + uuid))
+    event['time'] = datetime.datetime.fromtimestamp(event['time'])
+    return event
 
 
 def get_all_events(r):
