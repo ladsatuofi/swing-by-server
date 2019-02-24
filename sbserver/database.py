@@ -16,16 +16,16 @@ def open_connection(hostname, port):
 class User:
     @staticmethod
     def add(email, password):
-        red.set('usered.email-usered.password:' + email, password)
+        red.set('user.email-user.password:' + email, password)
         return email
 
     @staticmethod
     def delete(email):
-        red.delete('usered.email-usered.password:' + email)
+        red.delete('user.email-user.password:' + email)
 
     @staticmethod
     def get_pass(email):
-        return red.get('usered.email-usered.password:' + email)
+        return red.get('user.email-user.password:' + email)
 
 
 class Event:
