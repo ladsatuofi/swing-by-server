@@ -1,9 +1,10 @@
 import datetime
 import json
 import redis
+from flask_restplus import fields
 from uuid import uuid4
 
-from sbserver import red
+from sbserver import red, api
 
 
 def open_connection(hostname, port):
@@ -29,6 +30,17 @@ class User:
 
 
 class Event:
+    model = api.model("event", {
+        'name': fields.String(desription='Name of event', required=True),
+        'description': fields.String(description='Description of event', required=True),
+        'location': fields.String(description='Location of event', required=True),
+        'time': fields.DateTime(description='UTC time string formatted as ISO 8601', required=True),
+        'duration': fields.Float(description='Number of hours of event'),
+        'timeStr': fields.String(description='String of time (ie. September 3rd at 4pm)'),
+        'tags': fields.List(fields.String, description='Tags associated with event'),
+        'uuid': fields.String(readonly=True, description='Generated uuid of object')
+    })
+
     @staticmethod
     def add(event: dict):
         uuid = event['uuid'] = str(uuid4())
