@@ -1,4 +1,6 @@
 import urllib.request
+import json
+import os.path
 from bs4 import BeautifulSoup
 
 
@@ -65,21 +67,31 @@ def relevant_topics(freq: list) -> list:
     return subjects
 
 
-# main
-categories = get_keywords()
-categories['Computer Science - ENG'] += ['computer science', 'machine learning', 'programming', 'icpc']
-sample_1 = '''
-Hi everyone,
-
-We hope everyone had a nice weekend. There will be an IPL meeting tonight 7 - 9 PM in Siebel 0224.  Pizza will be served at 6:45, so please come in early. The workshop will start at 7, and the topic for today is Introduction to Dynamic Programming.  There will also be a Google networking and Q&A panel this Thursday, February 21, exclusively for ICPC. Come and enjoy an informal evening with Googlers, mostly UIUC alumni, and hear about their experiences, current roles, and tips they'd have on building a successful tech career. Food and swag will be provided as well. The event would start at 6 PM in Siebel 2407. Please RSVP at bit.ly/google64QJ if you plan to attend.
-
-See you tonight!
-
-Cheers,
-ICPC Admin Team
-'''
-sample_1 = sample_1.lower()
-frequency = calc_freq(sample_1, categories)
-print(frequency)
-tags = relevant_topics(frequency)
-print(tags)
+if __name__ == '__main__':
+    categories = dict()
+    # if the file containing the dict for categories/keywords exists, set categories to its contents to reduce load time
+    if os.path.exists("data.json"):
+        with open("data.json") as f:
+            categories = json.load(f)
+    # otherwise, create the file by scraping the UIUC major list
+    else:
+        categories = get_keywords()
+        with open("data.json", "w") as f:
+            json.dump(categories, f)
+    # add custom keywords to certain categories
+    categories['Computer Science - ENG'] += ['computer science', 'machine learning', 'programming', 'icpc']
+    sample_1 = '''
+    Hi everyone,
+    
+    We hope everyone had a nice weekend. There will be an IPL meeting tonight 7 - 9 PM in Siebel 0224.  Pizza will be served at 6:45, so please come in early. The workshop will start at 7, and the topic for today is Introduction to Dynamic Programming.  There will also be a Google networking and Q&A panel this Thursday, February 21, exclusively for ICPC. Come and enjoy an informal evening with Googlers, mostly UIUC alumni, and hear about their experiences, current roles, and tips they'd have on building a successful tech career. Food and swag will be provided as well. The event would start at 6 PM in Siebel 2407. Please RSVP at bit.ly/google64QJ if you plan to attend.
+    
+    See you tonight!
+    
+    Cheers,
+    ICPC Admin Team
+    '''
+    # convert everything in the string to be analyzed to lowercase
+    sample_1 = sample_1.lower()
+    frequency = calc_freq(sample_1, categories)
+    tags = relevant_topics(frequency)
+    print(tags)
