@@ -24,11 +24,15 @@ setup(
         'Flask-Redis',
         'gunicorn',
         'Werkzeug',
-        'prettyparse'
+        'prettyparse',
+        'pyyaml',
+        'fitipy',
+        'email-helper'
     ],
     entry_points={
         'console_scripts': [
-            'sbserver=sbserver.main:main',
+            'sbserver=sbserver.scripts.main:main',
+            'sbserver-email-service=sbserver.scripts.email_service:main',
         ],
     }
 )

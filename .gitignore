@@ -5,4 +5,5 @@
 /access.log
 /dump.rdb
 event.json
-
+auth.yml
+.email-cache
