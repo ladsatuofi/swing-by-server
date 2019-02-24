@@ -3,6 +3,8 @@ import json
 import redis
 from uuid import uuid4
 
+from sbserver import red
+
 
 def open_connection(hostname, port):
     return redis.Redis(
@@ -13,25 +15,25 @@ def open_connection(hostname, port):
 
 class User:
     @staticmethod
-    def add(r, email, password):
-        r.set('user.email-user.password:' + email, password)
+    def add(email, password):
+        red.set('usered.email-usered.password:' + email, password)
         return email
 
     @staticmethod
-    def delete(r, email):
-        r.delete('user.email-user.password:' + email)
+    def delete(email):
+        red.delete('usered.email-usered.password:' + email)
 
     @staticmethod
-    def get_pass(r, email):
-        return r.get('user.email-user.password:' + email)
+    def get_pass(email):
+        return red.get('usered.email-usered.password:' + email)
 
 
 class Event:
     @staticmethod
-    def add(r, name: str, description: str, location: str,
+    def add(name: str, description: str, location: str,
             time: int, time_str: str, tags: list, uuid=''):
         uuid = uuid or str(uuid4())
-        r.set('event.uuid-event.details:' + uuid, json.dumps({
+        red.set('event.uuid-event.details:' + uuid, json.dumps({
             'name': name,
             'description': description,
             'location': location,
@@ -40,33 +42,33 @@ class Event:
             'tags': tags,
             'uuid': uuid
         }))
-        r.sadd('event.uuids', uuid)
+        red.sadd('event.uuids', uuid)
         for x in tags:
-            r.sadd(x, uuid)
+            red.sadd(x, uuid)
         return uuid
 
     @classmethod
-    def delete(cls, r, uuid):
-        tags = cls.get(r, uuid)['tags']
-        r.delete('event.uuid-event.details:' + uuid)
-        r.srem('event.uuids', uuid)
+    def delete(cls, uuid):
+        tags = cls.get(uuid)['tags']
+        red.delete('event.uuid-event.details:' + uuid)
+        red.srem('event.uuids', uuid)
         for tag in tags:
-            r.srem('tag:' + tag, uuid)
+            red.srem('tag:' + tag, uuid)
 
     @staticmethod
-    def exists(r, uuid):
-        return r.sismember('event.uuids', uuid)
+    def exists(uuid):
+        return red.sismember('event.uuids', uuid)
 
     @staticmethod
-    def get(r, uuid):
-        event = json.loads(r.get('event.uuid-event.details:' + uuid))
+    def get(uuid):
+        event = json.loads(red.get('event.uuid-event.details:' + uuid))
         event['time'] = datetime.datetime.fromtimestamp(event['time'])
         return event
 
     @classmethod
-    def get_all(cls, r):
-        return [cls.get(r, x) for x in r.smembers('event.uuids')]
+    def get_all(cls):
+        return [cls.get(x) for x in red.smembers('event.uuids')]
 
     @classmethod
-    def get_by_tag(cls, r, tag):
-        return [cls.get(r, uuid) for uuid in r.smembers('tag:' + tag)]
+    def get_by_tag(cls, tag):
+        return [cls.get(uuid) for uuid in red.smembers('tag:' + tag)]

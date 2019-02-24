@@ -23,12 +23,12 @@ EventApiModel = api.model("event", {
 class EventInfoRoute(Resource):
     @api.marshal_with(EventApiModel)
     def get(self, uuid):
-        return Event.get(red, uuid)
+        return Event.get(uuid)
 
     def delete(self, uuid):
-        if not Event.exists(red, uuid):
+        if not Event.exists(uuid):
             raise NotFound('Uuid not found: ' + uuid)
-        Event.delete(red, uuid)
+        Event.delete(uuid)
         return {'status': 'success'}
 
 
@@ -37,7 +37,7 @@ class EventCreateRoute(Resource):
     @api.marshal_list_with(EventApiModel)
     def get(self):
         tag = request.args.get('tag')
-        return Event.get_by_tag(red, tag) if tag else Event.get_all(red)
+        return Event.get_by_tag(tag) if tag else Event.get_all(red)
 
     @api.expect(EventApiModel)
     @api.marshal_with(EventApiModel)
@@ -45,6 +45,6 @@ class EventCreateRoute(Resource):
         data = api.payload
         t = datetime_from_iso8601(data['time'])
         timestamp = int(time.mktime(t.timetuple()))
-        uuid = Event.add(red, data['name'], data['description'], data['location'],
+        uuid = Event.add(data['name'], data['description'], data['location'],
                          timestamp, data.get('timeStr', ''), data.get('tags', []))
-        return Event.get(red, uuid)
+        return Event.get(uuid)
