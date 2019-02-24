@@ -29,6 +29,8 @@ def get_keywords_uiuc() -> dict:
                                                                      'section']:
                         for term in element.find_all('li'):
                             majors[link.string].append(term.string.lower())
+    majors['Computer Science - ENG'] += ['computer science', 'machine learning',
+                                             'programming', 'icpc']
     return majors
 
 
@@ -58,7 +60,7 @@ def relevant_topics(freq: dict) -> list:
     # add the subjects that have at least max * 0.3 number of
     # occurrences to a list of subjects/categories (to remove outliers)
     for key in freq:
-        if freq[key] >= max * 0.3:
+        if freq[key] >= max * 0.8 and max > 0:
             subjects.append(key)
     return subjects
 
@@ -73,9 +75,6 @@ def main():
         categories = get_keywords_uiuc()
         with open("data.json", "w") as f:
             json.dump(categories, f)
-    # add custom keywords to certain categories
-    categories['Computer Science - ENG'] += ['computer science', 'machine learning',
-                                             'programming', 'icpc']
     # sample email
     sample_1 = '''
     Hi everyone,

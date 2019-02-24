@@ -18,9 +18,7 @@ class RKey(str):
         return self.name + bool(self.target) * ':' + self.target
 
     def __call__(self, target):
-        print(self.name, self.target)
         duplicate = RKey(self.name + ':' + target)
-        print(duplicate)
         return duplicate
 
     def __and__(self, other):

@@ -84,7 +84,8 @@ class Event:
         'tags': fields.List(fields.String, description='Tags associated with event'),
         'uuid': fields.String(readonly=True, description='Generated uuid of object'),
         'state': fields.String(readonly=True, description='One of: EventState.pending, '
-                                                         'EventState.valid, EventState.invalid')
+                                                          'EventState.valid, EventState.invalid'),
+        'emailSrc': fields.String(readonly=True, description='Raw source email if forwarded')
     })
 
     @staticmethod
