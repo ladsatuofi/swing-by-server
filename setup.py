@@ -21,7 +21,7 @@ setup(
         'sbserver',
         'sbserver.data',
         'sbserver.routes',
-        'sbserver.scripts'g
+        'sbserver.scripts'
     ],
     install_requires=[
         'Flask',
