@@ -1,6 +1,7 @@
 *.egg-info/
 *.pyc
 .idea/
+.vscode/
 .venv/
 /access.log
 /dump.rdb
