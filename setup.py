@@ -17,7 +17,12 @@ setup(
         'Programming Language :: Python :: 3.6',
     ],
     keywords='server',
-    packages=['sbserver'],
+    packages=[
+        'sbserver',
+        'sbserver.data',
+        'sbserver.routes',
+        'sbserver.scripts'g
+    ],
     install_requires=[
         'Flask',
         'Flask-RESTPlus',
