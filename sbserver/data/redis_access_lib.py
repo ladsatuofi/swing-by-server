@@ -1,9 +1,7 @@
+import datetime
 import json
 import redis
-import datetime
 from uuid import uuid4
-
-from sbserver.data.model import EventModel
 
 
 def open_connection(hostname, port):
@@ -25,11 +23,20 @@ def del_user(r, email):
     r.delete('user.email-user.password:' + email)
 
 
-def add_event(r, event: EventModel):
-    event.uuid = uuid = event.uuid or str(uuid4())
-    r.set('event.uuid-event.details:' + uuid, json.dumps(event, default=vars))
+def add_event(r, name: str, description: str, location: str, time: int, time_str: str, tags: list,
+              uuid=''):
+    uuid = uuid or str(uuid4())
+    r.set('event.uuid-event.details:' + uuid, json.dumps({
+        'name': name,
+        'description': description,
+        'location': location,
+        'time': time,
+        'timeStr': time_str,
+        'tags': tags,
+        'uuid': uuid
+    }))
     r.sadd('event.uuids', uuid)
-    for x in event.tags:
+    for x in tags:
         r.sadd(x, uuid)
     return uuid
 

@@ -1,13 +1,13 @@
 import time
+
 from flask import request
 from flask_restplus import Resource, fields
 from flask_restplus.inputs import datetime_from_iso8601
-from werkzeug.exceptions import BadRequest, NotFound
+from werkzeug.exceptions import NotFound
 
 from sbserver import api, red
-from sbserver.data.model import EventModel
-from sbserver.data.redis_access_lib import get_event, get_events_by_tag, get_all_events, add_event, del_event, is_event
-
+from sbserver.data.redis_access_lib import get_event, get_events_by_tag, get_all_events, add_event, \
+    del_event, is_event
 
 EventApiModel = api.model("event", {
     'name': fields.String(desription='Name of event', required=True),
@@ -44,10 +44,8 @@ class EventCreateRoute(Resource):
     @api.marshal_with(EventApiModel)
     def post(self):
         data = api.payload
-        print(data)
-        print(type(data), type(data.get('time')))
-        event = EventModel(data['name'], data['description'], data['location'],
-                               int(time.mktime(datetime_from_iso8601(data['time']).timetuple())), data.get('timeStr', ''), data.get('tags', []))
-
-        uuid = add_event(red, event)
+        t = datetime_from_iso8601(data['time'])
+        timestamp = int(time.mktime(t.timetuple()))
+        uuid = add_event(red, data['name'], data['description'], data['location'],
+                         timestamp, data.get('timeStr', ''), data.get('tags', []))
         return get_event(red, uuid)
