@@ -80,6 +80,7 @@ if __name__ == '__main__':
             json.dump(categories, f)
     # add custom keywords to certain categories
     categories['Computer Science - ENG'] += ['computer science', 'machine learning', 'programming', 'icpc']
+    # sample email
     sample_1 = '''
     Hi everyone,
     
@@ -90,7 +91,7 @@ if __name__ == '__main__':
     Cheers,
     ICPC Admin Team
     '''
-    # convert everything in the string to be analyzed to lowercase
+    # convert everything in the string to be lowercase to make finding the frequency more efficient
     sample_1 = sample_1.lower()
     frequency = calc_freq(sample_1, categories)
     tags = relevant_topics(frequency)
