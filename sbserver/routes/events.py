@@ -13,6 +13,7 @@ EventApiModel = api.model("event", {
     'description': fields.String(description='Description of event', required=True),
     'location': fields.String(description='Location of event', required=True),
     'time': fields.DateTime(description='UTC time string formatted as ISO 8601', required=True),
+    'duration': fields.Float(description='Number of hours of event'),
     'timeStr': fields.String(description='String of time (ie. September 3rd at 4pm)'),
     'tags': fields.List(fields.String, description='Tags associated with event'),
     'uuid': fields.String(readonly=True, description='Generated uuid of object')
@@ -45,6 +46,6 @@ class EventCreateRoute(Resource):
         data = api.payload
         t = datetime_from_iso8601(data['time'])
         timestamp = int(time.mktime(t.timetuple()))
-        uuid = Event.add(data['name'], data['description'], data['location'],
-                         timestamp, data.get('timeStr', ''), data.get('tags', []))
+        data['time'] = timestamp
+        uuid = Event.add(data)
         return Event.get(uuid)

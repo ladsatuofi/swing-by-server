@@ -30,18 +30,10 @@ class User:
 
 class Event:
     @staticmethod
-    def add(name: str, description: str, location: str,
-            time: int, time_str: str, tags: list, uuid=''):
-        uuid = uuid or str(uuid4())
-        red.set('event.uuid-event.details:' + uuid, json.dumps({
-            'name': name,
-            'description': description,
-            'location': location,
-            'time': time,
-            'timeStr': time_str,
-            'tags': tags,
-            'uuid': uuid
-        }))
+    def add(event: dict):
+        uuid = event['uuid'] = str(uuid4())
+        tags = event.setdefault('tags', [])
+        red.set('event.uuid-event.details:' + uuid, json.dumps(event))
         red.sadd('event.uuids', uuid)
         for x in tags:
             red.sadd(x, uuid)
