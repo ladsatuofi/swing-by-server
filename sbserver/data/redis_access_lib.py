@@ -1,6 +1,8 @@
 import json
 import redis
 
+from sbserver.data.model import EventModel
+
 
 def open_connection(hostname, port):
     return redis.Redis(
@@ -21,26 +23,27 @@ def del_user(r, email):
     r.delete('user.email-user.password:' + email)
 
 
-def add_event(r, uuid, event):
-    r.set('event.uuid-event.details:' + uuid, json.dumps(event, default=lambda o: o.__dict__))
-    add_event_to_set(r, uuid, event)
+def add_event(r, uuid, event: EventModel):
+    r.set('event.uuid-event.details:' + uuid, json.dumps(event, default=vars))
+    r.sadd('event.uuids', uuid)
+    for x in event.tags:
+        r.sadd(x, uuid)
 
 
 def del_event(r, uuid):
     r.delete('event.uuid-event.details:' + uuid)
+    r.srem('event.uuids', uuid)
+    for tag in get_event(r, uuid)['tags']:
+        r.srem('tag:' + tag)
+
+
+def get_event(r, uuid):
+    return json.loads(r.get('event.uuid-event.details:' + uuid))
 
 
 def get_all_events(r):
-    event_list = []
-    for x in r.keys('*event*'):
-        event_list.append(json.loads(r.get(x)))
-    return event_list
-
-
-def add_event_to_set(r, uuid, event):
-    for x in event.tags:
-        r.sadd(x, "event.uuid-event.details:" + uuid)
+    return [get_event(r, x) for x in r.smembers('event.uuids')]
 
 
 def get_events_by_tag(r, tag):
-    return r.smembers(tag)
+    return r.smembers('tag:' + tag)
