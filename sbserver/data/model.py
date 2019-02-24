@@ -1,4 +1,4 @@
-class event():
+class EventModel:
     def __init__(self, name, desc, locat, time, tags):
         self.name = name
         self.desc = desc
