@@ -1,6 +1,6 @@
-import urllib.request
 import json
 import os.path
+import urllib.request
 from bs4 import BeautifulSoup
 
 
@@ -14,10 +14,12 @@ def get_keywords() -> dict:
     # scrape the website for the majors by singling out links (HTML tag: 'a') with an HTML class = "data-description major-link"
     for link in soup.find_all('a'):
         for key in link.attrs:
-            if key == 'class' and link.attrs[key] == ['data-description', 'major-link'] and link.string.find(
-                    'Undeclared') == -1:
+            if key == 'class' and link.attrs[key] == ['data-description',
+                                                      'major-link'] and link.string.find(
+                'Undeclared') == -1:
                 # get links to each major to scrape keywords from the "Career Possibilities" section
-                major_url = urllib.request.urlopen('https://myillini.illinois.edu' + link.get('href'))
+                major_url = urllib.request.urlopen(
+                    'https://myillini.illinois.edu' + link.get('href'))
                 html = major_url.read()
                 link_soup = BeautifulSoup(html, 'html.parser')
                 majors[link.string] = []
@@ -25,7 +27,8 @@ def get_keywords() -> dict:
                 # keywords are found within the HTML div element with class = "programCareerExamples section"
                 for element in link_soup.find_all('div'):
                     for label in element.attrs:
-                        if label == 'class' and element.attrs[label] == ['programCareerExamples', 'section']:
+                        if label == 'class' and element.attrs[label] == ['programCareerExamples',
+                                                                         'section']:
                             for term in element.find_all('li'):
                                 majors[link.string].append(term.string.lower())
     """Returns dict with majors as keys and a list of corresponding keywords for each major"""
@@ -33,6 +36,7 @@ def get_keywords() -> dict:
 
 
 def calc_freq(text: str, topics: dict) -> dict:
+    """Returns dict of occurrences of keywords for each category"""
     occurrences = dict()
     for subject in topics:
         freq = 0
@@ -42,11 +46,11 @@ def calc_freq(text: str, topics: dict) -> dict:
                 index = text.find(keyword, index) + len(keyword)
                 freq += 1
             occurrences[subject] = freq
-    """Returns dict of occurrences of keywords for each category"""
     return occurrences
 
 
 def relevant_topics(freq: list) -> list:
+    """Returns the list of subjects that are relevant to the original email text"""
     # sum = 0
     max = 0
     # ratios = dict()
@@ -63,11 +67,10 @@ def relevant_topics(freq: list) -> list:
             subjects.append(key)
         # ratios[key] = float(freq[key]/sum)
     # print(ratios)
-    """Returns the list of subjects that are relevant to the original email text"""
     return subjects
 
 
-if __name__ == '__main__':
+def main():
     categories = dict()
     # if the file containing the dict for categories/keywords exists, set categories to its contents to reduce load time
     if os.path.exists("data.json"):
@@ -79,7 +82,8 @@ if __name__ == '__main__':
         with open("data.json", "w") as f:
             json.dump(categories, f)
     # add custom keywords to certain categories
-    categories['Computer Science - ENG'] += ['computer science', 'machine learning', 'programming', 'icpc']
+    categories['Computer Science - ENG'] += ['computer science', 'machine learning', 'programming',
+                                             'icpc']
     # sample email
     sample_1 = '''
     Hi everyone,
@@ -96,3 +100,7 @@ if __name__ == '__main__':
     frequency = calc_freq(sample_1, categories)
     tags = relevant_topics(frequency)
     print(tags)
+
+
+if __name__ == '__main__':
+    main()
